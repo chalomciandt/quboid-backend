@@ -6,8 +6,11 @@ const index = require("./routes/index");
 const app = express();
 app.use(index);
 
+
 const server = http.createServer(app);
-const io = socketIo(server);
+const io = socketIo(server, {
+  cors: { origin: "*" }
+});
 const getApiAndEmit = socket => {
   const response = new Date();
   // Emitting a new message. Will be consumed by the client
