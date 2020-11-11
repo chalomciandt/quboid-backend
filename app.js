@@ -9,26 +9,41 @@ app.use(index);
 
 const server = http.createServer(app);
 const io = socketIo(server, {
+  // BAD security, should not use in production!
   cors: { origin: "*" }
 });
-const getApiAndEmit = socket => {
+const clock = () => {
   const response = new Date();
-  // Emitting a new message. Will be consumed by the client
-  socket.emit("FromAPI", response);
+  // Broadcasting a new message. Will be consumed by the client
+  io.emit("clock", response);
 };
 
 let interval;
+let lobbyPlayers = [];
 
 io.on("connection", (socket) => {
   console.log("New client connected");
+  io.emit("lobbyplayers", lobbyPlayers);
   if (interval) {
     clearInterval(interval);
   }
-  interval = setInterval(() => getApiAndEmit(socket), 1000);
+  interval = setInterval(() => clock(), 1000);
   socket.on("disconnect", () => {
-    console.log("Client disconnected");
+    console.log("Client disconnected: " + socket.username);
+    const idx = lobbyPlayers.indexOf(socket.username);
+    if (idx > -1) {
+      lobbyPlayers.splice(idx, 1);
+    }
+    io.emit("lobbyplayers", lobbyPlayers);
     clearInterval(interval);
   });
+
+  socket.on("newplayer", (username) => {
+    socket.username = username;
+    lobbyPlayers.push(username);
+    io.emit("lobbyplayers", lobbyPlayers);
+  });
 });
+
 
 server.listen(port, () => console.log(`Listening on port ${port}`));
