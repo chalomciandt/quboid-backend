@@ -56,7 +56,7 @@ io.on("connection", (socket) => {
   });
 
   socket.on("sendmove", (data) => {
-    console.log("Move received: " + data.whoami + " played at " + data.i);
+    console.log("Move received: " + data.whoami + " played at " + data.move);
     io.emit("sendmove", {player: data.whoami, move: data.move});
   });
 });
